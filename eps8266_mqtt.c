@@ -7,26 +7,27 @@
 #include <PubSubClient.h>
 #include <WiFiClientSecure.h>
 
-// Khai bao bien
+// Define variables
 const int led = D4;
 String TOPIC = "status";
 const char* Topic = TOPIC.c_str();
 String mqtt_message = "1";
+int statusDevice = 0;
 
-// Thong tin wifi
+// Wifi details
 const char* ssid = "Shiba Shopee";
 const char* password = "abcefghhh";
 
-// Thong tin mqtt broker
+// MQTT broker details
 const char* mqtt_server = "d861533d074544ffb95af20146317ee4.s2.eu.hivemq.cloud";
 const char* mqtt_username = "android";
 const char* mqtt_password = "MySeminar";
 const int mqtt_port =8883;
 
-/**** Secure WiFi Connectivity Initialisation *****/
+// Secure WiFi Connectivity Initialisation
 WiFiClientSecure espClient;
 
-/**** MQTT Client Initialisation Using WiFi Connection *****/
+// MQTT Client Initialisation Using WiFi Connection
 PubSubClient client(espClient);
 
 unsigned long lastMsg = 0;
@@ -69,7 +70,20 @@ emyPxgcYxn/eR44/KJ4EBs+lVDR3veyJm+kXQ99b21/+jh5Xos1AnX5iItreGCc=
 -----END CERTIFICATE-----
 )EOF";
 
-// Ket noi wifi
+// On off device
+void set_Device()
+{
+  if (statusDevice == 1) 
+  {
+    digitalWrite(led, HIGH);
+  }
+  else if (statusDevice == 0)
+  {
+    digitalWrite(led, LOW);
+  }
+}
+
+// Connect to wifi
 void setup_wifi() {
   delay(10);
   Serial.print("\nConnecting to ");
@@ -87,7 +101,7 @@ void setup_wifi() {
   Serial.println(WiFi.localIP());
 }
 
-// Ket noi MQTT broker
+// Connect to MQTT broker
 void reconnect() {
   // Loop until we're reconnected
   while (!client.connected()) {
@@ -109,20 +123,25 @@ void reconnect() {
   }
 }
 
-/***** Call back Method for Receiving MQTT messages and Switching LED ****/
-
+// Call back Method for Receiving MQTT messages
 void callback(char* topic, byte* payload, unsigned int length) {
   String incommingMessage = "";
   for (int i = 0; i < length; i++) incommingMessage+=(char)payload[i];
 
   Serial.println("Message arrived ["+String(topic)+"]"+incommingMessage);
 
-  //--- check the incomming message
+  // check the incomming message
     if( strcmp(topic,Topic) == 0){
-     if (incommingMessage.equals("1")) digitalWrite(led, HIGH);   // Turn the LED on
-     else digitalWrite(led, LOW);  // Turn the LED off
+      if (incommingMessage.equals("1"))
+      {
+        statusDevice = 1;
+      }
+      else if (incommingMessage.equals("0"))
+      {
+        statusDevice = 0;
+      }
   }
-
+  set_Device();
 }
 
 // Publish to a topic
@@ -152,8 +171,6 @@ void setup() {
 void loop() {
   if (!client.connected()) reconnect(); // check if client is connected
   client.loop();
-//  publishMessage("esp8266_data", mqtt_message, true);
-
-  delay(5000);
+  delay(1000);
 
 }
