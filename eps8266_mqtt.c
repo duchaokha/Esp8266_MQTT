@@ -8,8 +8,9 @@
 #include <WiFiClientSecure.h>
 
 // Define variables
-const int led = D4;
-String TOPIC = "status";
+const int led1 = D1;
+const int led2 = D2;
+String TOPIC = "duchaokha@gmail.com";
 const char* Topic = TOPIC.c_str();
 String mqtt_message = "1";
 int statusDevice = 0;
@@ -22,7 +23,7 @@ const char* password = "abcefghhh";
 const char* mqtt_server = "d861533d074544ffb95af20146317ee4.s2.eu.hivemq.cloud";
 const char* mqtt_username = "android";
 const char* mqtt_password = "MySeminar";
-const int mqtt_port =8883;
+const int mqtt_port = 8883;
 
 // Secure WiFi Connectivity Initialisation
 WiFiClientSecure espClient;
@@ -71,16 +72,28 @@ emyPxgcYxn/eR44/KJ4EBs+lVDR3veyJm+kXQ99b21/+jh5Xos1AnX5iItreGCc=
 )EOF";
 
 // On off device
-void set_Device()
+void set_Device(int statusDevice)
 {
-  if (statusDevice == 1) 
+  switch(statusDevice)
   {
-    digitalWrite(led, HIGH);
+    case 0:
+      digitalWrite(led1, LOW);
+      digitalWrite(led2, LOW);
+      break;
+    case 1:
+      digitalWrite(led1, HIGH);
+      digitalWrite(led2, LOW);
+      break;
+    case 2:
+      digitalWrite(led1, LOW);
+      digitalWrite(led2, HIGH);
+      break;
+    case 3:
+      digitalWrite(led1, HIGH);
+      digitalWrite(led2, HIGH);
+      break;
   }
-  else if (statusDevice == 0)
-  {
-    digitalWrite(led, LOW);
-  }
+  
 }
 
 // Connect to wifi
@@ -132,16 +145,28 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
   // check the incomming message
     if( strcmp(topic,Topic) == 0){
-      if (incommingMessage.equals("1"))
-      {
-        statusDevice = 1;
-      }
-      else if (incommingMessage.equals("0"))
+      if (incommingMessage.equals("00"))
       {
         statusDevice = 0;
+        Serial.print(statusDevice);
+      }
+      else if (incommingMessage.equals("01"))
+      {
+        statusDevice = 1;
+        Serial.print(statusDevice);
+      }
+      else if (incommingMessage.equals("10"))
+      {
+        statusDevice = 2;
+        Serial.print(statusDevice);
+      }
+      else if (incommingMessage.equals("11"))
+      {
+        statusDevice = 3;
+        Serial.print(statusDevice);
       }
   }
-  set_Device();
+  set_Device(statusDevice);
 }
 
 // Publish to a topic
@@ -152,7 +177,8 @@ void publishMessage(const char* topic, String payload , boolean retained){
 
 void setup() {
   
-  pinMode(led, OUTPUT); //set up LED
+  pinMode(led1, OUTPUT); //set up led1
+  pinMode(led2, OUTPUT); //set up led2
   Serial.begin(9600);
   while (!Serial) delay(1);
   setup_wifi();
@@ -171,6 +197,6 @@ void setup() {
 void loop() {
   if (!client.connected()) reconnect(); // check if client is connected
   client.loop();
-  delay(1000);
+  delay(500);
 
 }
